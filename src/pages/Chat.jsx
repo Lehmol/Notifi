@@ -1,7 +1,9 @@
-import React from "react";
+import Header from "../components/ChatComponents/Header.jsx";
 
-function Chat() {
-  return <div>Chat</div>;
+export default function Chat() {
+  return (
+    <div>
+      <Header />
+    </div>
+  );
 }
-
-export default Chat;
