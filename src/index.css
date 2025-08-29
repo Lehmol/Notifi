@@ -22,12 +22,20 @@ body {
   gap: 10px;
   padding: 16px;
   border: 1px solid #e4e2f2;
-  border-radius: 10px;
+  border-radius: 6px;
   width: 400px;
   height: 500px;
 }
+.formCard a {
+  color: inherit;
+  text-decoration: none;
+}
+.formCard a:hover {
+  color: rgb(193, 193, 247);
+}
 .formCard h1 {
   margin: 0 0 4px;
+  justify-self: center;
 }
 .formCard input {
   padding: 10px;
@@ -44,6 +52,10 @@ body {
   background: rgb(94, 94, 216);
   color: white;
   cursor: pointer;
+  justify-self: center;
+}
+.formCard p {
+  justify-self: center;
 }
 /* Grundlayout för header */
 .header {
@@ -72,8 +84,8 @@ body {
 
 .nav-center h1 {
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 1.8rem;
+  font-weight: 500;
 }
 
 /* Höger (dropdown) */
@@ -82,15 +94,11 @@ body {
 }
 
 .dropdown-toggle {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
+  background: none;
+  border: none;
   padding: 0.5rem 0.8rem;
   cursor: pointer;
-  border-radius: 4px;
-}
-
-.dropdown-toggle:hover {
-  background: #eaeaea;
+  font-size: 30px;
 }
 
 /* Dropdown-menyn */

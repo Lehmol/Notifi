@@ -1,7 +1,6 @@
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Chat from "./pages/Chat.jsx";
-import Profile from "./pages/Profile.jsx";
 
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext.jsx";
@@ -25,7 +24,6 @@ export default function App() {
       </Route>
       <Route element={<RequireAuth />}>
         <Route path="/chat" element={<Chat />} />
-        <Route path="/profile" element={<Profile />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

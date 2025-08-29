@@ -99,7 +99,7 @@ export default function Login() {
         {error && <p>{error}</p>}
         {success && <p>{success}</p>}
         <p>
-          Not a user?<Link to="/register">Register here!</Link>
+          Not a user?<Link to="/register"> Register here!</Link>
         </p>
       </form>
     </div>

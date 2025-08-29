@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext.jsx";
+import { IoMenuSharp } from "react-icons/io5";
 import "../../index.css";
 
 function Header() {
   const [open, setOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, auth } = useAuth();
   const navigate = useNavigate();
 
   const onLogout = () => {
@@ -20,17 +21,14 @@ function Header() {
           <img src="/notifi.png" alt="logo" className="logo" />
         </div>
         <div className="nav-center">
-          <h1>Welcome Username</h1>
+          <h1>Welcome {auth.user}</h1>
         </div>
         <div className="nav-right">
           <button className="dropdown-toggle" onClick={() => setOpen(!open)}>
-            Dropdown menu
+            <IoMenuSharp />
           </button>
           {open && (
             <div className="dropdown-menu">
-              <Link to="/profile" className="dropdown-item">
-                Profile
-              </Link>
               <button onClick={onLogout} className="dropdown-item">
                 Logout
               </button>
