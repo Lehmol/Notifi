@@ -18,7 +18,6 @@ export function AuthProvider({ children }) {
     let decoded = {};
     try {
       decoded = jwtDecode(token);
-      console.log(decoded);
     } catch {}
     const username =
       extra.username ?? extra.user ?? decoded.username ?? decoded.user ?? null;

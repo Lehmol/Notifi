@@ -1,49 +1,99 @@
+import { useEffect, useState, useRef } from "react";
 import Header from "../components/ChatComponents/Header.jsx";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import api from "../utilities/api";
+import getCsrfToken from "../utilities/csrf";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { escapeHtml } from "../utilities/sanitize.js";
-import { botReply } from "../utilities/bot.js";
+
+const BOT_MESSAGES = [
+  "Hej! Hur står det till?",
+  "Jag heter Maja, vad heter du?",
+  "Kul! Berätta mer..",
+];
 
 export default function Chat() {
-  const { auth, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const myUser = auth.user;
-  const otherUser = "Maja";
-
-  const [messages, setMessages] = useState([
-    { user: otherUser, text: "Hej! Jag heter Maja. Hur mår du?" },
-  ]);
+  const { auth } = useAuth();
+  const myId = String(auth?.id ?? "");
+  const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const botIdx = useRef(0);
 
-  const canSend = text.trim().length > 0;
+  const fetchMessages = async () => {
+    try {
+      const res = await api.get("/messages");
+      const data = Array.isArray(res.data)
+        ? res.data
+        : res.data?.messages || [];
+      setMessages(data);
+    } catch (e) {
+      console.error("Kunde inte hämta meddelanden");
+    }
+  };
 
-  function deleteMessage(indexToRemove) {
-    setMessages((prev) => prev.filter((_, i) => i !== indexToRemove));
-  }
-  async function sendMessage(e) {
-    e?.preventDefault?.();
-    const userClean = escapeHtml(text.trim());
-    if (!userClean) return;
+  useEffect(() => {
+    fetchMessages();
+  }, []);
 
-    setMessages((prev) => [...prev, { user: myUser, text: userClean }]);
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    const msg = text.trim();
+    if (!msg || sending) return;
+
+    setSending(true);
+    const tempId = `temp_${Date.now()}`;
+
+    setMessages((prev) => [
+      ...prev,
+      { id: tempId, text: msg, userId: myId, isBot: false, temp: true },
+    ]);
     setText("");
 
     try {
-      const botText = await botReply(userClean);
-      const botClean = escapeHtml(botText);
-      setMessages((prev) => [...prev, { user: otherUser, text: botClean }]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          user: otherUser,
-          text: "Någonting fick fel, försök skriva något igen.",
-        },
-      ]);
+      const csrfToken = await getCsrfToken();
+      const { data } = await api.post("/messages", { text: msg, csrfToken });
+
+      const created = data?.latestMessage ?? data ?? {};
+      const saved = {
+        id: created.id ?? created._id ?? created.msgId ?? tempId,
+        text: created.text ?? msg,
+        userId: String(created.userId ?? myId),
+        isBot: Boolean(created.isBot ?? false),
+        temp: false,
+      };
+
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? saved : m)));
+
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot_${Date.now()}`,
+            text: BOT_MESSAGES[botIdx.current++ % BOT_MESSAGES.length],
+            userId: "bot",
+            isBot: true,
+          },
+        ]);
+      }, 1000);
+    } catch (e) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      console.error("Kunde inte skicka meddelande");
+    } finally {
+      setSending(false);
     }
-  }
+  };
+
+  const deleteMessageServer = async (id) => {
+    const before = messages;
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+
+    try {
+      const csrfToken = await getCsrfToken();
+      await api.delete(`/messages/${id}`, { data: { csrfToken } });
+    } catch (e) {
+      setMessages(before);
+      console.error("Kunde inte radera meddelande");
+    }
+  };
 
   return (
     <div>
@@ -51,23 +101,24 @@ export default function Chat() {
       <div className="chat-container">
         <div className="chat-wrap">
           <ul className="chat-list">
-            {messages.map((m, i) => {
-              const mine = m.user === myUser;
+            {messages.map((m) => {
+              const mine = !m.isBot && String(m.userId) === myId;
               return (
-                <li key={i} className={`bubble ${mine ? "right" : "left"}`}>
+                <li key={m.id} className={`bubble ${mine ? "right" : "left"}`}>
                   <div
                     className="bubble-text"
                     dangerouslySetInnerHTML={{ __html: m.text }}
                   />
-                  <button
-                    className="del"
-                    onClick={() => deleteMessage(i)}
-                    aria-label="Delete"
-                    title="Delete message"
-                  >
-                    {" "}
-                    X{" "}
-                  </button>
+                  {mine && m.id && !m.temp && !m.isBot && (
+                    <button
+                      className="del"
+                      onClick={() => deleteMessageServer(m.id)}
+                      aria-label="Delete"
+                      title="Delete message"
+                    >
+                      X
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -77,13 +128,12 @@ export default function Chat() {
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeHolder="Skriv ett meddelande..."
+              placeholder="Skriv ett meddelande..."
               autoComplete="off"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) sendMessage(e);
-              }}
             />
-            <button disabled={!canSend}>Skicka</button>
+            <button disabled={sending || text.trim().length === 0}>
+              {sending ? "Skickar…" : "Skicka"}
+            </button>
           </form>
         </div>
       </div>
