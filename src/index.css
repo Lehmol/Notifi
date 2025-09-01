@@ -129,3 +129,63 @@ body {
 .dropdown-item:hover {
   background: #f0f0f0;
 }
+/* Chat layout */
+.chat-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px;
+}
+.chat-wrap {
+  display: grid;
+  gap: 12px;
+}
+.chat-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.bubble {
+  max-width: 70%;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.bubble.left {
+  justify-self: start;
+}
+.bubble.right {
+  justify-self: end;
+  flex-direction: row-reverse;
+}
+.bubble-text {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f2f2f2;
+  color: #111;
+}
+.bubble.right .bubble-text {
+  background: #6ae58b;
+  color: #fff;
+}
+.del {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.composer input {
+  height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  outline: none;
+}
