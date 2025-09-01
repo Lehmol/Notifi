@@ -83,9 +83,24 @@ body {
 }
 
 .nav-center h1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   font-size: 1.8rem;
   font-weight: 500;
+  white-space: nowrap;
+}
+.nav-center {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+}
+.nav-center .nav-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 /* Höger (dropdown) */

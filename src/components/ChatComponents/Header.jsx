@@ -21,7 +21,12 @@ function Header() {
           <img src="/notifi.png" alt="logo" className="logo" />
         </div>
         <div className="nav-center">
-          <h1>Welcome {auth.user}</h1>
+          <h1>
+            {auth?.avatar && (
+              <img src={auth.avatar} alt={auth.user} className="nav-avatar" />
+            )}
+            <span> Welcome {auth.user}</span>
+          </h1>
         </div>
         <div className="nav-right">
           <button className="dropdown-toggle" onClick={() => setOpen(!open)}>

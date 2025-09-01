@@ -5,7 +5,7 @@ import getCsrfToken from "../utilities/csrf";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 const BOT_MESSAGES = [
-  "Hej! Hur står det till?",
+  "Hur står det till?",
   "Jag heter Maja, vad heter du?",
   "Kul! Berätta mer..",
 ];

@@ -4,7 +4,12 @@ import api from "../utilities/api";
 import getCsrfToken from "../utilities/csrf";
 
 export default function Register() {
-  const [form, setForm] = useState({ username: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    avatar: "",
+  });
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,10 +39,32 @@ export default function Register() {
     }
   };
 
+  const validAvatar = form.avatar && /^https?:\/\/.+/i.test(form.avatar);
+
   return (
     <div className="center-page">
       <form className="formCard" onSubmit={submit}>
         <h1>Register</h1>
+        {validAvatar && (
+          <img
+            src={form.avatar}
+            alt="avatar preview"
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: "50%",
+              marginTop: 8,
+            }}
+          />
+        )}
+        <input
+          placeholder="avatar URL"
+          name="avatar"
+          type="url"
+          value={form.avatar}
+          onChange={onChange}
+          autoComplete="off"
+        />
         <input
           placeholder="username"
           name="username"
