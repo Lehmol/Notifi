@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { setAuthToken } from "../utilities/api";
 
 const AuthContext = createContext(null);
 
@@ -10,8 +11,12 @@ export function AuthProvider({ children }) {
   });
 
   useEffect(() => {
-    if (auth) localStorage.setItem("auth", JSON.stringify(auth));
-    else localStorage.removeItem("auth");
+    if (auth) {
+      localStorage.setItem("auth", JSON.stringify(auth));
+      setAuthToken(auth.token);
+    } else {
+      localStorage.removeItem("auth");
+    }
   }, [auth]);
 
   const login = (token, extra = {}) => {

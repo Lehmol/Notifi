@@ -3,6 +3,8 @@ import Header from "../components/ChatComponents/Header.jsx";
 import api from "../utilities/api";
 import getCsrfToken from "../utilities/csrf";
 import { useAuth } from "../auth/AuthContext.jsx";
+import DOMPurify from "dompurify";
+import parse from "html-react-parser";
 
 const BOT_MESSAGES = [
   "Hur står det till?",
@@ -105,10 +107,9 @@ export default function Chat() {
               const mine = !m.isBot && String(m.userId) === myId;
               return (
                 <li key={m.id} className={`bubble ${mine ? "right" : "left"}`}>
-                  <div
-                    className="bubble-text"
-                    dangerouslySetInnerHTML={{ __html: m.text }}
-                  />
+                  <div className="bubble-text">
+                    {parse(DOMPurify.sanitize(m.text))}
+                  </div>
                   {mine && m.id && !m.temp && !m.isBot && (
                     <button
                       className="del"
