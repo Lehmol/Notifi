@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import Header from "../components/ChatComponents/Header.jsx";
-import api from "../utilities/api";
-import getCsrfToken from "../utilities/csrf";
-import { useAuth } from "../auth/AuthContext.jsx";
 import DOMPurify from "dompurify";
 import parse from "html-react-parser";
+import Header from "../components/ChatComponents/Header";
+import api from "../utilities/api";
+import getCsrfToken from "../utilities/csrf";
+import { useAuth } from "../auth/AuthContext";
 
 const BOT_MESSAGES = [
   "Hur står det till?",
@@ -20,6 +20,11 @@ export default function Chat() {
   const [sending, setSending] = useState(false);
   const botIdx = useRef(0);
 
+  // Fetch messages on component mount
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
   const fetchMessages = async () => {
     try {
       const res = await api.get("/messages");
@@ -27,14 +32,10 @@ export default function Chat() {
         ? res.data
         : res.data?.messages || [];
       setMessages(data);
-    } catch (e) {
-      console.error("Kunde inte hämta meddelanden");
+    } catch (error) {
+      console.error("Kunde inte hämta meddelanden:", error);
     }
   };
-
-  useEffect(() => {
-    fetchMessages();
-  }, []);
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -44,6 +45,7 @@ export default function Chat() {
     setSending(true);
     const tempId = `temp_${Date.now()}`;
 
+    // Optimistically add message to UI
     setMessages((prev) => [
       ...prev,
       { id: tempId, text: msg, userId: myId, isBot: false, temp: true },
@@ -63,8 +65,10 @@ export default function Chat() {
         temp: false,
       };
 
+      // Replace temp message with saved message
       setMessages((prev) => prev.map((m) => (m.id === tempId ? saved : m)));
 
+      // Simulate bot response
       setTimeout(() => {
         setMessages((prev) => [
           ...prev,
@@ -76,24 +80,27 @@ export default function Chat() {
           },
         ]);
       }, 1000);
-    } catch (e) {
+    } catch (error) {
+      // Rollback optimistic update on error
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      console.error("Kunde inte skicka meddelande");
+      console.error("Kunde inte skicka meddelande:", error);
     } finally {
       setSending(false);
     }
   };
 
-  const deleteMessageServer = async (id) => {
+  const deleteMessage = async (id) => {
     const before = messages;
+    // Optimistically remove message from UI
     setMessages((prev) => prev.filter((m) => m.id !== id));
 
     try {
       const csrfToken = await getCsrfToken();
       await api.delete(`/messages/${id}`, { data: { csrfToken } });
-    } catch (e) {
+    } catch (error) {
+      // Rollback on error
       setMessages(before);
-      console.error("Kunde inte radera meddelande");
+      console.error("Kunde inte radera meddelande:", error);
     }
   };
 
@@ -104,20 +111,23 @@ export default function Chat() {
         <div className="chat-wrap">
           <ul className="chat-list">
             {messages.map((m) => {
-              const mine = !m.isBot && String(m.userId) === myId;
+              const isMine = !m.isBot && String(m.userId) === myId;
               return (
-                <li key={m.id} className={`bubble ${mine ? "right" : "left"}`}>
+                <li
+                  key={m.id}
+                  className={`bubble ${isMine ? "right" : "left"}`}
+                >
                   <div className="bubble-text">
                     {parse(DOMPurify.sanitize(m.text))}
                   </div>
-                  {mine && m.id && !m.temp && !m.isBot && (
+                  {isMine && m.id && !m.temp && !m.isBot && (
                     <button
                       className="del"
-                      onClick={() => deleteMessageServer(m.id)}
-                      aria-label="Delete"
+                      onClick={() => deleteMessage(m.id)}
+                      aria-label="Delete message"
                       title="Delete message"
                     >
-                      X
+                      ×
                     </button>
                   )}
                 </li>

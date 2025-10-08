@@ -1,19 +1,9 @@
+import { Navigate, Route, Routes } from "react-router-dom";
+import { RequireAuth, RedirectIfAuth } from "./auth/ProtectedRoute.jsx";
+
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Chat from "./pages/Chat.jsx";
-
-import { Navigate, Outlet, Route, Routes } from "react-router-dom";
-import { useAuth } from "./auth/AuthContext.jsx";
-
-function RequireAuth() {
-  const { auth } = useAuth();
-  return auth ? <Outlet /> : <Navigate to="/login" replace />;
-}
-
-function RedirectIfAuth() {
-  const { auth } = useAuth();
-  return auth ? <Navigate to="/chat" replace /> : <Outlet />;
-}
 
 export default function App() {
   return (

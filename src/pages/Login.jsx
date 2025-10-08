@@ -1,9 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import api, { setAuthToken } from "../utilities/api";
+import api from "../utilities/api";
 import getCsrfToken from "../utilities/csrf";
-import { jwtDecode } from "jwt-decode";
-import { useAuth } from "../auth/AuthContext.jsx";
+import { useAuth } from "../auth/AuthContext";
 
 export default function Login() {
   const [form, setForm] = useState({ identity: "", password: "" });
@@ -21,52 +20,50 @@ export default function Login() {
     setError("");
     setSuccess("");
     setLoading(true);
+
     try {
-      //1) CSRF
+      //Get csrf token
       const csrfToken = await getCsrfToken();
 
-      //2) payload
+      // Build payload based on input (email or username)
       const id = form.identity.trim();
       const payload = id.includes("@")
         ? { email: id, password: form.password, csrfToken }
         : { username: id, password: form.password, csrfToken };
 
-      //3) POST /auth/token
+      //Make login request
       const { data } = await api.post("/auth/token", payload);
-
-      const token = data.token;
-      if (!token) throw new Error("No token");
-
-      //4) Decoda token
-      let decoded = {};
-      try {
-        decoded = jwtDecode(token);
-      } catch (err) {
-        console.error("Not able to decode token:", decoded);
+      if (!data.token) {
+        throw new Error("No token received");
       }
-      //Extract userinfo
-      const user = data?.user ?? {};
-      const idClaim = user.id;
-      const nameClaim = user.user;
-      const avatarClaim = user.avatar;
 
-      //5) Update auth-context and redirect
-      login(token, { id: idClaim, username: nameClaim, avatar: avatarClaim });
-      setAuthToken(token);
-      setSuccess("You are logged in");
+      //Extract user info from response
+      const user = data?.user ?? {};
+
+      // Use login function from AuthContext (handles token decoding and storage)
+      login(data.token, {
+        id: user.id,
+        username: user.username,
+        avatar: user.avatar,
+      });
+      setSuccess("You are logged in! Redirecting to Home...");
       setTimeout(() => {
         navigate("/chat", { replace: true });
-      }, 2000);
+      }, 1000);
     } catch (err) {
+      console.error("Full error object:", err);
+      console.error("Response status:", err?.response?.status);
+      console.error("Response data:", err?.response?.data);
+      console.error("Error message:", err?.message);
+      // Handle different error scenarios
       const msg =
         err?.response?.data?.message ||
-        (err?.response?.status === 403 ? "Missing CSRF-token" : "") ||
+        (err?.response?.status === 403 ? "Missing CSRF token" : "") ||
         (err?.response?.status === 400
           ? "Bad request - Missing username or password"
           : "") ||
         "Login failed";
       setError(msg);
-      console.debug("LOGIN ERROR", err?.response?.status, err?.response?.data);
     } finally {
       setLoading(false);
     }
@@ -79,10 +76,10 @@ export default function Login() {
         <input
           placeholder="username or email"
           name="identity"
-          value={form.identity}
+          value={form.identify}
           onChange={onChange}
           required
-          autoComplete="off"
+          autoComplete="username"
         />
         <input
           placeholder="password"
@@ -91,15 +88,15 @@ export default function Login() {
           value={form.password}
           onChange={onChange}
           required
-          autoComplete="off"
+          autoComplete="current-password"
         />
         <button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
-        {error && <p>{error}</p>}
-        {success && <p>{success}</p>}
+        {error && <p className="error">{error}</p>}
+        {success && <p className="success">{success}</p>}
         <p>
-          Not a user?<Link to="/register"> Register here!</Link>
+          Not a user? <Link to="/register">Register here!</Link>
         </p>
       </form>
     </div>

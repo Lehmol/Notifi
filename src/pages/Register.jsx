@@ -11,40 +11,42 @@ export default function Register() {
     avatar: "",
   });
   const [error, setError] = useState("");
-  const [ok, setOk] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const submit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setOk("");
-    try {
-      setLoading(true);
-      const csrfToken = await getCsrfToken();
+    setSuccess("");
+    setLoading(true);
 
+    try {
+      const csrfToken = await getCsrfToken();
       await api.post("/auth/register", { ...form, csrfToken });
 
-      setOk("You are registered! Now you can login...");
-      setTimeout(() => navigate("/"), 1500);
+      setSuccess("You are registered! Redirecting to Login...");
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       const msg =
-        err?.response?.data?.message || "Username or email already exists";
+        err?.response?.data?.message || "Username or email already in exists";
       setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const validAvatar = form.avatar && /^https?:\/\/.+/i.test(form.avatar);
+  //Check if avatar URL is valid
+  const validAvatar = form.avatar && /^hhtps?:\/\/.+/i.test(form.avatar);
 
   return (
     <div className="center-page">
-      <form className="formCard" onSubmit={submit}>
+      <form className="formCard" onSubmit={onSubmit}>
         <h1>Register</h1>
+
         {validAvatar && (
           <img
             src={form.avatar}
@@ -54,11 +56,13 @@ export default function Register() {
               height: 100,
               borderRadius: "50%",
               marginTop: 8,
+              objectFit: "cover",
             }}
           />
         )}
+
         <input
-          placeholder="avatar URL"
+          placeholder="avatar URL (optional)"
           name="avatar"
           type="url"
           value={form.avatar}
@@ -72,7 +76,7 @@ export default function Register() {
           value={form.username}
           onChange={onChange}
           required
-          autoComplete="off"
+          autoComplete="username"
         />
         <input
           placeholder="email"
@@ -81,7 +85,7 @@ export default function Register() {
           value={form.email}
           onChange={onChange}
           required
-          autoComplete="off"
+          autoComplete="email"
         />
         <input
           placeholder="password"
@@ -90,15 +94,18 @@ export default function Register() {
           onChange={onChange}
           required
           type="password"
-          autoComplete="off"
+          autoComplete="new-password"
         />
+
         <button disabled={loading} type="submit">
           {loading ? "Registering..." : "Register"}
         </button>
-        {error && <p>{error}</p>}
-        {ok && <p>{ok}</p>}
+
+        {error && <p className="error">{error}</p>}
+        {success && <p className="success">{success}</p>}
+
         <p>
-          Already a user?<Link to="/"> Login here!</Link>
+          Already a user? <Link to="/login">Login here!</Link>
         </p>
       </form>
     </div>
