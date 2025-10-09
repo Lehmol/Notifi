@@ -112,6 +112,7 @@ export default function Chat() {
           <ul className="chat-list">
             {messages.map((m) => {
               const isMine = !m.isBot && String(m.userId) === myId;
+
               return (
                 <li
                   key={m.id}
@@ -120,7 +121,7 @@ export default function Chat() {
                   <div className="bubble-text">
                     {parse(DOMPurify.sanitize(m.text))}
                   </div>
-                  {isMine && m.id && !m.temp && !m.isBot && (
+                  {isMine && m.id && !m.temp && (
                     <button
                       className="del"
                       onClick={() => deleteMessage(m.id)}
